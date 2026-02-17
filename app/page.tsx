@@ -9,11 +9,19 @@ import { AnnotationPanel } from '@/components/annotation-panel'
 import { AgentControls } from '@/components/agent-controls'
 import { SandboxStatus } from '@/components/sandbox-status'
 import { toast } from 'sonner'
+import { Menu, X, ChevronRight, ChevronLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export default function DashboardPage() {
   const [agentStatus, setAgentStatus] = useState<'idle' | 'running' | 'paused'>('idle')
   const [selectedStep, setSelectedStep] = useState<number | null>(null)
   const [isStarting, setIsStarting] = useState(false)
+
+  // Responsive UI State
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(true)
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(true)
+  const [mobileView, setMobileView] = useState('vnc') // 'vnc', 'steps', 'tasks'
 
   // Real E2B State
   const [sandboxId, setSandboxId] = useState<string | null>(null)
@@ -21,6 +29,21 @@ export default function DashboardPage() {
   const [metrics, setMetrics] = useState({ cpu: 0, memory: '0.0' })
 
   const eventSourceRef = useRef<EventSource | null>(null)
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setLeftSidebarOpen(false)
+        setRightSidebarOpen(false)
+      } else {
+        setLeftSidebarOpen(true)
+        setRightSidebarOpen(true)
+      }
+    }
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     if (sandboxId && agentStatus === 'running') {
@@ -72,12 +95,10 @@ export default function DashboardPage() {
         })
       } catch (e: any) {
         console.error(e)
-        // Fallback for demonstration if API key is missing
         if (e.message.includes('API key') || e.message.includes('Unauthorized')) {
            toast.warning('E2B_API_KEY missing, using demo mode', {
              description: 'Start a sandbox for real integration'
            })
-           // Simulate demo mode
            setSandboxId('demo_' + Math.random().toString(36).substring(7))
            setVncUrl('https://demo.vnc.e2b.dev')
            setAgentStatus('running')
@@ -112,12 +133,52 @@ export default function DashboardPage() {
     <div className="flex h-screen flex-col bg-background overflow-hidden">
       <AgentHeader status={isStarting ? 'idle' : agentStatus} />
 
-      <div className="flex flex-1 overflow-hidden">
+      {/* Mobile Navigation Tabs */}
+      <div className="flex lg:hidden border-b border-border bg-card">
+        <button
+          onClick={() => setMobileView('vnc')}
+          className={cn(
+            "flex-1 py-3 text-xs font-medium border-b-2 transition-colors",
+            mobileView === 'vnc' ? "border-primary text-primary" : "border-transparent text-muted-foreground"
+          )}
+        >
+          Stream
+        </button>
+        <button
+          onClick={() => setMobileView('steps')}
+          className={cn(
+            "flex-1 py-3 text-xs font-medium border-b-2 transition-colors",
+            mobileView === 'steps' ? "border-primary text-primary" : "border-transparent text-muted-foreground"
+          )}
+        >
+          Steps
+        </button>
+        <button
+          onClick={() => setMobileView('tasks')}
+          className={cn(
+            "flex-1 py-3 text-xs font-medium border-b-2 transition-colors",
+            mobileView === 'tasks' ? "border-primary text-primary" : "border-transparent text-muted-foreground"
+          )}
+        >
+          Tasks
+        </button>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden relative">
         {/* Left Sidebar - Execution Timeline */}
-        <aside className="w-80 border-r border-border bg-card flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-border">
-            <h2 className="text-sm font-semibold text-foreground">Execution Steps</h2>
-            <p className="text-xs text-muted-foreground mt-1">Step-by-step visualization</p>
+        <aside className={cn(
+          "absolute lg:relative z-30 h-full border-r border-border bg-card flex flex-col transition-all duration-300",
+          leftSidebarOpen ? "w-80 translate-x-0" : "w-0 -translate-x-full lg:w-0 lg:translate-x-0 lg:opacity-0 overflow-hidden",
+          "lg:translate-x-0 lg:opacity-100" // Desktop overrides
+        )}>
+          <div className="p-4 border-b border-border flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">Execution Steps</h2>
+              <p className="text-xs text-muted-foreground mt-1">Step-by-step visualization</p>
+            </div>
+            <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setLeftSidebarOpen(false)}>
+              <X className="h-4 w-4" />
+            </Button>
           </div>
           <ExecutionTimeline
             selectedStep={selectedStep}
@@ -127,10 +188,28 @@ export default function DashboardPage() {
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main className={cn(
+          "flex-1 flex flex-col overflow-hidden transition-all duration-300",
+          mobileView !== 'vnc' && "hidden lg:flex"
+        )}>
           {/* VNC Viewer */}
-          <div className="flex-1 p-4 overflow-hidden">
+          <div className="flex-1 p-2 lg:p-4 overflow-hidden relative">
+            {/* Desktop Toggle Buttons */}
+            <button
+              onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+              className="hidden lg:flex absolute left-6 top-1/2 -translate-y-1/2 z-40 h-8 w-4 bg-border/50 hover:bg-border items-center justify-center rounded-r transition-colors"
+            >
+              {leftSidebarOpen ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+            </button>
+
             <VncViewer selectedStep={selectedStep} vncUrl={vncUrl} />
+
+            <button
+              onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
+              className="hidden lg:flex absolute right-6 top-1/2 -translate-y-1/2 z-40 h-8 w-4 bg-border/50 hover:bg-border items-center justify-center rounded-l transition-colors"
+            >
+              {rightSidebarOpen ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+            </button>
           </div>
 
           {/* Agent Controls */}
@@ -142,12 +221,53 @@ export default function DashboardPage() {
           </div>
         </main>
 
-        {/* Right Sidebar - Task Feed & Sandbox Status */}
-        <aside className="w-96 border-l border-border bg-card flex flex-col overflow-hidden">
+        {/* Mobile Steps View */}
+        <div className={cn(
+          "lg:hidden flex-1 overflow-auto bg-background",
+          mobileView !== 'steps' && "hidden"
+        )}>
+          <ExecutionTimeline
+            selectedStep={selectedStep}
+            onSelectStep={setSelectedStep}
+            agentStatus={agentStatus}
+          />
+          <div className="p-4 border-t border-border">
+             <AnnotationPanel selectedStep={selectedStep} />
+          </div>
+        </div>
+
+        {/* Mobile Tasks View */}
+        <div className={cn(
+          "lg:hidden flex-1 flex flex-col bg-background",
+          mobileView !== 'tasks' && "hidden"
+        )}>
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <TaskFeed agentStatus={agentStatus} />
+          </div>
+          <div className="border-t border-border bg-card">
+            <SandboxStatus
+              sandboxId={sandboxId}
+              cpu={metrics.cpu}
+              memory={metrics.memory}
+            />
+          </div>
+        </div>
+
+        {/* Right Sidebar - Task Feed & Sandbox Status (Desktop) */}
+        <aside className={cn(
+          "absolute right-0 lg:relative z-30 h-full border-l border-border bg-card flex flex-col transition-all duration-300",
+          rightSidebarOpen ? "w-96 translate-x-0" : "w-0 translate-x-full lg:w-0 lg:translate-x-0 lg:opacity-0 overflow-hidden",
+          "lg:translate-x-0 lg:opacity-100 hidden lg:flex" // Desktop overrides
+        )}>
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="p-4 border-b border-border">
-              <h2 className="text-sm font-semibold text-foreground">Live Task Feed</h2>
-              <p className="text-xs text-muted-foreground mt-1">Real-time agent processing</p>
+            <div className="p-4 border-b border-border flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-foreground">Live Task Feed</h2>
+                <p className="text-xs text-muted-foreground mt-1">Real-time agent processing</p>
+              </div>
+              <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setRightSidebarOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
             </div>
             <TaskFeed agentStatus={agentStatus} />
           </div>
