@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { AgentHeader } from '@/components/agent-header'
 import { VncViewer } from '@/components/vnc-viewer'
 import { TaskFeed } from '@/components/task-feed'
@@ -15,18 +15,96 @@ export default function DashboardPage() {
   const [selectedStep, setSelectedStep] = useState<number | null>(null)
   const [isStarting, setIsStarting] = useState(false)
 
-  const handleAgentControl = (action: 'start' | 'stop' | 'pause') => {
+  // Real E2B State
+  const [sandboxId, setSandboxId] = useState<string | null>(null)
+  const [vncUrl, setVncUrl] = useState<string | null>(null)
+  const [metrics, setMetrics] = useState({ cpu: 0, memory: '0.0' })
+
+  const eventSourceRef = useRef<EventSource | null>(null)
+
+  useEffect(() => {
+    if (sandboxId && agentStatus === 'running') {
+      const es = new EventSource(`/api/events?sandboxId=${sandboxId}`)
+      eventSourceRef.current = es
+
+      es.onmessage = (event) => {
+        const data = JSON.parse(event.data)
+        if (data.type === 'status') {
+          setMetrics({ cpu: data.cpu, memory: data.memory })
+        } else if (data.type === 'log') {
+          toast.info(data.message, {
+             description: data.timestamp,
+             icon: '🤖'
+          })
+        }
+      }
+
+      es.onerror = () => {
+        console.error('SSE connection failed')
+        es.close()
+      }
+
+      return () => {
+        es.close()
+        eventSourceRef.current = null
+      }
+    }
+  }, [sandboxId, agentStatus])
+
+  const handleAgentControl = async (action: 'start' | 'stop' | 'pause') => {
     if (action === 'start') {
       setIsStarting(true)
-      // Simulate fast E2B startup
-      setTimeout(() => {
+      try {
+        const res = await fetch('/api/sandbox', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'start' }),
+        })
+        const data = await res.json()
+
+        if (!res.ok) throw new Error(data.error || 'Failed to start sandbox')
+
+        setSandboxId(data.sandboxId)
+        setVncUrl(data.vncUrl)
         setAgentStatus('running')
+        toast.success('Sandbox started', {
+          description: `ID: ${data.sandboxId}`
+        })
+      } catch (e: any) {
+        console.error(e)
+        // Fallback for demonstration if API key is missing
+        if (e.message.includes('API key') || e.message.includes('Unauthorized')) {
+           toast.warning('E2B_API_KEY missing, using demo mode', {
+             description: 'Start a sandbox for real integration'
+           })
+           // Simulate demo mode
+           setSandboxId('demo_' + Math.random().toString(36).substring(7))
+           setVncUrl('https://demo.vnc.e2b.dev')
+           setAgentStatus('running')
+        } else {
+           toast.error('Error: ' + e.message)
+        }
+      } finally {
         setIsStarting(false)
-      }, 500)
+      }
     } else if (action === 'stop') {
-      setAgentStatus('idle')
+      try {
+        await fetch('/api/sandbox', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'stop', sandboxId }),
+        })
+        setAgentStatus('idle')
+        setSandboxId(null)
+        setVncUrl(null)
+        setMetrics({ cpu: 0, memory: '0.0' })
+        toast.info('Sandbox stopped')
+      } catch (e) {
+        toast.error('Failed to stop sandbox')
+      }
     } else if (action === 'pause') {
       setAgentStatus('paused')
+      toast.info('Agent paused')
     }
   }
 
@@ -52,7 +130,7 @@ export default function DashboardPage() {
         <main className="flex-1 flex flex-col overflow-hidden">
           {/* VNC Viewer */}
           <div className="flex-1 p-4 overflow-hidden">
-            <VncViewer selectedStep={selectedStep} />
+            <VncViewer selectedStep={selectedStep} vncUrl={vncUrl} />
           </div>
 
           {/* Agent Controls */}
@@ -76,7 +154,11 @@ export default function DashboardPage() {
 
           {/* Sandbox Status */}
           <div className="border-t border-border">
-            <SandboxStatus />
+            <SandboxStatus
+              sandboxId={sandboxId}
+              cpu={metrics.cpu}
+              memory={metrics.memory}
+            />
           </div>
 
           {/* Annotation Panel */}
