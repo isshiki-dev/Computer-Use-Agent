@@ -1,7 +1,40 @@
-# Computer-Use-Agent
+# Computer Use Agent Dashboard
 
-Computer Use Agent Experience the future of AI automation as agents operate computers in real time to complete complex on-screen tasks (GUI agents). Provides intuitive visualization and annotation tools, enabling manual preferential data annotation for advanced agentic AI research.
+An AI-powered automation interface featuring real-time agent task processing, VNC streaming, and step-by-step execution visualization.
 
-An AI-powered automation interface featuring real-time agent task processing, VNC streaming, and step-by-step execution visualization.Desktop Sandbox is an open source secure virtual desktop ready for Computer Use. Powered by E2B.
+## Features
 
-Each sandbox is isolated from the others and can be customized with any dependencies you want.
+- **Real-Time Agent Task Processing**: Immediate visualization of agent actions and task statuses.
+- **VNC Streaming Window**: A central viewport for monitoring the agent's interaction with the desktop environment.
+- **Step-by-Step Execution Visualization**: A detailed timeline sidebar for tracking agent progress.
+- **Annotation Tools**: Manual preferential data annotation for advanced agentic AI research.
+- **E2B Sandbox Integration**: Real-time monitoring of secure Firecracker microVM sandboxes (Ubuntu 22.04).
+- **Modern UI**: Dark-themed, professional dashboard built with Next.js, Tailwind CSS, and Radix UI.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm
+
+### Installation
+
+```bash
+npm i
+```
+
+### Development
+
+```bash
+npm run d\ev
+```
+
+The dashboard will be available at `http://localhost:3000`.
+
+## Tech Stack
+
+- **Frontend**: [Next.js](https://nextjs.org/) (App Router)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Components**: [Radix UI](https://www.radix-ui.com/), [Lucide React](https://lucide.dev/)
+- **Infrastructure**: [E2B](https://e2b.dev/)
