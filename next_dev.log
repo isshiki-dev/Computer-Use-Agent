@@ -1,0 +1,72 @@
+
+> ui@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+
+✓ Starting...
+✓ Ready in 5.7s
+○ Compiling / ...
+ GET / 200 in 3.9s (compile: 3.6s, render: 352ms)
+E2B Sandbox API Error: Error [AuthenticationError]: Unauthorized, please check your credentials. - authorization header is missing
+    at async POST (app/api/sandbox/route.ts:11:23)
+   9 |     if (action === 'start') {
+  10 |       // Start a new desktop sandbox
+> 11 |       const desktop = await Sandbox.create({
+     |                       ^
+  12 |         apiKey: process.env.E2B_API_KEY,
+  13 |       })
+  14 |
+ POST /api/sandbox 500 in 1261ms (compile: 717ms, render: 543ms)
+ GET /api/events?sandboxId=demo_0naj5f 200 in 1266ms (compile: 83ms, render: 1183ms)
+ GET / 200 in 107ms (compile: 11ms, render: 96ms)
+E2B Sandbox API Error: Error [AuthenticationError]: Unauthorized, please check your credentials. - authorization header is missing
+    at async POST (app/api/sandbox/route.ts:11:23)
+   9 |     if (action === 'start') {
+  10 |       // Start a new desktop sandbox
+> 11 |       const desktop = await Sandbox.create({
+     |                       ^
+  12 |         apiKey: process.env.E2B_API_KEY,
+  13 |       })
+  14 |
+ POST /api/sandbox 500 in 314ms (compile: 21ms, render: 292ms)
+ GET /api/events?sandboxId=demo_q7uzfc 200 in 3.4s (compile: 5ms, render: 3.4s)
+ GET / 200 in 132ms (compile: 4ms, render: 128ms)
+ GET / 200 in 418ms (compile: 37ms, render: 381ms)
+E2B Sandbox API Error: Error [AuthenticationError]: Unauthorized, please check your credentials. - authorization header is missing
+    at async POST (app/api/sandbox/route.ts:11:23)
+   9 |     if (action === 'start') {
+  10 |       // Start a new desktop sandbox
+> 11 |       const desktop = await Sandbox.create({
+     |                       ^
+  12 |         apiKey: process.env.E2B_API_KEY,
+  13 |       })
+  14 |
+ POST /api/sandbox 500 in 760ms (compile: 66ms, render: 693ms)
+ GET /api/events?sandboxId=demo_gucfbq 200 in 1656ms (compile: 11ms, render: 1645ms)
+ GET / 200 in 128ms (compile: 6ms, render: 122ms)
+E2B Sandbox API Error: Error [AuthenticationError]: Unauthorized, please check your credentials. - authorization header is missing
+    at async POST (app/api/sandbox/route.ts:11:23)
+   9 |     if (action === 'start') {
+  10 |       // Start a new desktop sandbox
+> 11 |       const desktop = await Sandbox.create({
+     |                       ^
+  12 |         apiKey: process.env.E2B_API_KEY,
+  13 |       })
+  14 |
+ POST /api/sandbox 500 in 351ms (compile: 34ms, render: 317ms)
+ GET /api/events?sandboxId=demo_i46t5 200 in 1695ms (compile: 5ms, render: 1690ms)
+ GET / 200 in 121ms (compile: 3ms, render: 118ms)
+E2B Sandbox API Error: Error [AuthenticationError]: Unauthorized, please check your credentials. - authorization header is missing
+    at async POST (app/api/sandbox/route.ts:11:23)
+   9 |     if (action === 'start') {
+  10 |       // Start a new desktop sandbox
+> 11 |       const desktop = await Sandbox.create({
+     |                       ^
+  12 |         apiKey: process.env.E2B_API_KEY,
+  13 |       })
+  14 |
+ POST /api/sandbox 500 in 376ms (compile: 26ms, render: 350ms)
+ GET /api/events?sandboxId=demo_x0gm1n 200 in 1642ms (compile: 4ms, render: 1638ms)
